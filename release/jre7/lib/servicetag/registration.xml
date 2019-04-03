@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<registration_data version="1.0">
+   <environment>
+      <hostname>SnowPC</hostname>
+      <hostId/>
+      <osName>Windows 8</osName>
+      <osVersion>6.2</osVersion>
+      <osArchitecture>amd64</osArchitecture>
+      <systemModel>1141A31</systemModel>
+      <systemManufacturer>LENOVO</systemManufacturer>
+      <cpuManufacturer>GenuineIntel</cpuManufacturer>
+      <serialNumber>R9FLEX5</serialNumber>
+   </environment>
+   <registry urn="urn:st:93d44604-1b3f-4f1e-9da2-47abd639b6f1" version="1.0">
+      <service_tag>
+         <instance_urn>urn:st:ab9b59f2-ec9a-4127-8b82-26b4d5abcd56</instance_urn>
+         <product_name>Java SE 7 Runtime Environment</product_name>
+         <product_version>1.7.0_15</product_version>
+         <product_urn>JSERE-007-ZZZZ</product_urn>
+         <product_parent_urn>urn:uuid:dc1704fe-264f-11dc-9482-080020a9ed93</product_parent_urn>
+         <product_parent>Java Platform Standard Edition 7 (Java SE 7)</product_parent>
+         <product_defined_inst_id>id=1.7.0_15-b03 amd64,dir=C:\Program Files\Java\jre7</product_defined_inst_id>
+         <product_vendor>Oracle Corporation</product_vendor>
+         <platform_arch>amd64</platform_arch>
+         <timestamp>2019-04-02 13:58:10 GMT</timestamp>
+         <container>global</container>
+         <source>Windows JRE installer</source>
+         <installer_uid>-1</installer_uid>
+      </service_tag>
+   </registry>
+</registration_data>

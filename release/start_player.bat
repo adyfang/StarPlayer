@@ -1,0 +1,1 @@
+start ./jre7/bin/javaw -Dfile.encoding=utf-8 -jar StarPlayer.jar

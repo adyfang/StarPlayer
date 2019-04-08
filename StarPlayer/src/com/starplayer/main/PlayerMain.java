@@ -44,6 +44,7 @@ public class PlayerMain
     public static void main(String[] args) throws IOException
     {
         playerCache.setViewMap(playerCache.readHistory());
+        playerCache.setSearchMap(playerCache.getViewMap());
         String arch = System.getProperty("sun.arch.data.model");
         if (RuntimeUtil.isWindows())
         {
@@ -163,7 +164,7 @@ public class PlayerMain
 
     // Open view from your computer
     @SuppressWarnings("static-access")
-    public static void openVedio()
+    public static void openVideo()
     {
         JFileChooser chooser = new JFileChooser();
         if (null != playerCache.getLastPath())
@@ -180,6 +181,7 @@ public class PlayerMain
             File file = chooser.getSelectedFile();
             // String name = file.getName();
             String filePath = file.getAbsolutePath();
+            playerCache.setLastFile(filePath);
             playerCache.getViewMap().put(filePath, filePath);
             // Save the list history
             try
@@ -202,8 +204,8 @@ public class PlayerMain
                         }
                     }
                 }
+                playerCache.setSearchMap(playerCache.getViewMap());
                 playerCache.writeHistory(playerCache.getViewMap());
-                // System.out.println("History: " + listHistory.readHistory());
             } catch (Exception e)
             {
                 e.printStackTrace();
@@ -216,14 +218,12 @@ public class PlayerMain
 
     // Open movie from the list view
     @SuppressWarnings("static-access")
-    public static void openVedioFromList(String name)
+    public static void openVideoFromList(String name)
     {
         String path = playerCache.getViewMap().get(name);
+        playerCache.setLastFile(path);
         playerCache.getViewMap().put(path, path);
         playerCache.writeHistory(playerCache.getViewMap());
-        System.out.println("History: " + playerCache.readHistory());
-        // String realPath = URLDecoder.decode(path, "UTF-8");
-        // System.out.println("realPath:" + realPath);
         frame.getMediaPlayer().playMedia(path);
         frame.getPlayButton().setText("||");
     }

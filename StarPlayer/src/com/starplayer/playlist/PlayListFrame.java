@@ -1,9 +1,15 @@
 package com.starplayer.playlist;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -23,6 +29,7 @@ import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 
+import com.starplayer.cache.PlayerCache;
 import com.starplayer.main.PlayerMain;
 
 @SuppressWarnings("serial")
@@ -45,11 +52,13 @@ public class PlayListFrame extends JFrame
     @SuppressWarnings("rawtypes")
     private DefaultListModel dlm = new DefaultListModel();
 
-    private JButton searchButton;
+    // private JButton searchButton;
 
-    private JTextField searchtField;
+    private JButton openFileButton;
 
-    private JPanel panel_1;
+    private JTextField searchField;
+
+    private JPanel historyPanel;
 
     /**
      * Create the frame,to display the watched history .
@@ -76,6 +85,7 @@ public class PlayListFrame extends JFrame
         if (!historyMap.isEmpty())
         {
             PlayerMain.getPlayerCache().setViewMap(historyMap);
+            PlayerMain.getPlayerCache().setSearchMap(historyMap);
             setList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
         }
         contentPane = new JPanel();
@@ -95,9 +105,16 @@ public class PlayListFrame extends JFrame
                 if (e.getClickCount() == 2)
                 {
                     String name = (String) list.getSelectedValue();
-                    PlayerMain.openVedioFromList(name);
-                    setList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
-                    getScrollPane().setViewportView(getList());
+                    list.setSelectedValue(name, true);
+                    // 选中文件在播放列表中的背景色
+                    list.setSelectionBackground(Color.GRAY);
+                    // 选中文件在播放列表中的字体颜色
+                    // list.setSelectionForeground(Color.BLACK);
+
+                    PlayerMain.openVideoFromList(name);
+                    // setList(new
+                    // ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
+                    // getScrollPane().setViewportView(getList());
                 }
             }
         });
@@ -108,64 +125,103 @@ public class PlayListFrame extends JFrame
         contentPane.add(panel, BorderLayout.NORTH);
         panel.setLayout(new BorderLayout(0, 0));
 
-        panel_1 = new JPanel();
-        panel.add(panel_1, BorderLayout.CENTER);
-        panel_1.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        historyPanel = new JPanel();
+        panel.add(historyPanel, BorderLayout.CENTER);
+        historyPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
-        searchtField = new JTextField();
-        searchtField.setText("");
-        panel_1.add(searchtField);
-        searchtField.setColumns(10);
+        searchField = new JTextField();
+        searchField.setText(PlayerCache.BTN_LIST_SEARCH);
+        searchField.setPreferredSize(new Dimension(180, 25));
+        historyPanel.add(searchField);
+        // searchField.setColumns(10);
 
-        // History search, will realize it when i am free
-        searchButton = new JButton("Search History");
-        searchButton.addMouseListener(new MouseAdapter()
+        searchField.addFocusListener(new FocusAdapter()
         {
             @Override
-            public void mouseClicked(MouseEvent e)
+            public void focusGained(FocusEvent e)
             {
-                JTextField sField = (JTextField)panel_1.getComponent(0);
-                String search = sField.getText();
-                if (null != search && search.trim().length() > 0)
+                // 获得焦点的时候,清空提示文字
+                JTextField textField = (JTextField) e.getSource();
+                String search = textField.getText();
+                if (null != search && search.trim().length() > 0 && PlayerCache.BTN_LIST_SEARCH.equals(search))
                 {
-                    PlayerMain.getPlayerCache().setSearchMap(PlayerMain.getPlayerCache().getViewMap());
-                    PlayerMain.getPlayerCache().getViewMap().clear();
-                    for (Entry<String, String> entry : PlayerMain.getPlayerCache().getSearchMap().entrySet())
-                    {
-                        if (entry.getValue().contains(search))
-                        {
-                            PlayerMain.getPlayerCache().getViewMap().put(entry.getKey(), entry.getValue());
-                        }
-                    }
-                }
-                else
-                {
-                    PlayerMain.getPlayerCache().setViewMap(PlayerMain.getPlayerCache().getSearchMap());
-                    PlayerMain.getPlayerCache().getSearchMap().clear();
+                    searchField.setText("");
                 }
                 
                 setList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
                 getScrollPane().setViewportView(getList());
-//                final PlayerDialog dialog = new PlayerDialog();
-//                dialog.setVisible(true);
-//                dialog.getCancelButton().setVisible(false);
-//                dialog.setText("The Performance will come soon!!");
-//                dialog.setBounds(PlayerMain.getFrame().getPlayListFrame().getX() + 15, PlayerMain.getFrame()
-//                        .getPlayListFrame().getY() + 100, 350, 115);
-//                dialog.getOkButton().addMouseListener(new MouseAdapter()
-//                {
-//                    @Override
-//                    public void mouseClicked(MouseEvent e)
-//                    {
-//                        dialog.setVisible(false);
-//                    }
-//                });
+
+                getList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
+                // 选中文件在播放列表中的背景色
+                getList().setSelectionBackground(Color.GRAY);
+            }
+
+            @Override
+            public void focusLost(FocusEvent e)
+            {
+                // 失去焦点的时候,判断如果为空,就显示提示文字
+                JTextField textField = (JTextField) e.getSource();
+                String search = textField.getText();
+                if (null == search || search.trim().length() == 0)
+                {
+                    searchField.setText(PlayerCache.BTN_LIST_SEARCH);
+                }
             }
         });
-        panel_1.add(searchButton);
+        
+        searchField.addKeyListener(new KeyAdapter()
+        {
+            public void keyReleased(KeyEvent e)
+            {
+                JTextField textField = (JTextField) e.getSource();
+                String search = textField.getText();
+                startSearch(search);
+            }
 
-        historyClearButton = new JButton("Clear History");
-        panel_1.add(historyClearButton);
+            public void keyTyped(KeyEvent e)
+            {
+            }
+
+            public void keyPressed(KeyEvent e)
+            {
+            }
+        });
+
+        openFileButton = new JButton(PlayerCache.MENU_FILE_OPEN_FILE);
+        historyPanel.add(openFileButton);
+
+        // 打开文件
+        openFileButton.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                PlayerMain.openVideo();
+                setList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
+                getScrollPane().setViewportView(getList());
+
+                getList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
+                // 选中文件在播放列表中的背景色
+                getList().setSelectionBackground(Color.GRAY);
+            }
+        });
+
+        // 搜索播放列表
+        // searchButton = new JButton(PlayerCache.BTN_LIST_SEARCH);
+        // searchButton.addMouseListener(new MouseAdapter()
+        // {
+        // @Override
+        // public void mouseClicked(MouseEvent e)
+        // {
+        // JTextField sField = (JTextField) historyPanel.getComponent(0);
+        // String search = sField.getText();
+        // startSearch(search);
+        // }
+        // });
+        // historyPanel.add(searchButton);
+
+        historyClearButton = new JButton(PlayerCache.BTN_LIST_CLEAR);
+        historyPanel.add(historyClearButton);
 
         // Clear history
         historyClearButton.addMouseListener(new MouseAdapter()
@@ -175,7 +231,7 @@ public class PlayListFrame extends JFrame
             {
                 final PlayerDialog dialog = new PlayerDialog();
                 dialog.setVisible(true);
-                dialog.setText("Are you sure to clear history?");
+                dialog.setText(PlayerCache.DIRLOG_CLEAR_PLAYLIST);
                 dialog.setBounds(PlayerMain.getFrame().getPlayListFrame().getX() + 15, PlayerMain.getFrame()
                         .getPlayListFrame().getY() + 100, 350, 115);
                 dialog.getCancelButton().addMouseListener(new MouseAdapter()
@@ -215,6 +271,32 @@ public class PlayListFrame extends JFrame
 
     }
 
+    private void startSearch(String search)
+    {
+        if (null != search && search.trim().length() > 0)
+        {
+            PlayerMain.getPlayerCache().getViewMap().clear();
+            for (Entry<String, String> entry : PlayerMain.getPlayerCache().getSearchMap().entrySet())
+            {
+                if (entry.getValue().contains(search))
+                {
+                    PlayerMain.getPlayerCache().getViewMap().put(entry.getKey(), entry.getValue());
+                }
+            }
+        }
+        else
+        {
+            PlayerMain.getPlayerCache().setViewMap(PlayerMain.getPlayerCache().getSearchMap());
+        }
+
+        setList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
+        getScrollPane().setViewportView(getList());
+        
+        getList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
+        // 选中文件在播放列表中的背景色
+        getList().setSelectionBackground(Color.GRAY);
+    }
+
     public int getFlag()
     {
         return flag;
@@ -228,7 +310,6 @@ public class PlayListFrame extends JFrame
     @SuppressWarnings("rawtypes")
     public JList getList()
     {
-
         return list;
     }
 
@@ -236,7 +317,6 @@ public class PlayListFrame extends JFrame
     { "unchecked", "rawtypes" })
     public void setList(ArrayList<String> arrayList)
     {
-
         dlm = new DefaultListModel();
         for (int i = arrayList.size() - 1; i >= 0; i--)
         {
@@ -253,12 +333,12 @@ public class PlayListFrame extends JFrame
 
     public JTextField getSearchtField()
     {
-        return searchtField;
+        return searchField;
     }
 
-    public void setSearchtField(JTextField searchtField)
+    public void setSearchField(JTextField searchField)
     {
-        this.searchtField = searchtField;
+        this.searchField = searchField;
     }
 
 }

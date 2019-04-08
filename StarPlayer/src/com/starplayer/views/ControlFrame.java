@@ -8,6 +8,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.starplayer.cache.PlayerCache;
 import com.starplayer.main.PlayerMain;
 
 import javax.swing.JProgressBar;
@@ -86,7 +87,7 @@ public class ControlFrame extends JFrame {
 		panel.add(playButton);
 		panel.add(backwordButton);
 
-		JButton stopButton = new JButton("Stop");
+		JButton stopButton = new JButton(PlayerCache.BTN_STOP);
 		stopButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -105,7 +106,7 @@ public class ControlFrame extends JFrame {
 		});
 		panel.add(forwardButton);
 
-		smallButton = new JButton("small");
+		smallButton = new JButton(PlayerCache.BTN_SMALL);
 		smallButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -138,17 +139,17 @@ public class ControlFrame extends JFrame {
 			@SuppressWarnings("static-access")
             @Override
 			public void mouseClicked(MouseEvent e) {
-				if (listButton.getText() == "List>>") {
+				if (PlayerCache.BTN_LIST_OPENED.equals(listButton.getText())) {
 					PlayerMain.getFrame().getPlayListFrame().setVisible(true);
 					PlayerMain.getFrame().getPlayListFrame().setBounds(
 							(int) Toolkit.getDefaultToolkit().getScreenSize().getWidth()
 									- PlayerMain.getFrame().getPlayListFrame().getWidth(),
 							0, 400, PlayerMain.getFrame().getHeight());
 					PlayerMain.getFrame().getPlayListFrame().setFlag(0);
-					listButton.setText("<<List");
-				} else if (listButton.getText() == "<<List") {
+					listButton.setText(PlayerCache.BTN_LIST_CLOSED);
+				} else if (PlayerCache.BTN_LIST_CLOSED.equals(listButton.getText())) {
 					PlayerMain.getFrame().getPlayListFrame().setVisible(false);
-					listButton.setText("List>>");
+					listButton.setText(PlayerCache.BTN_LIST_OPENED);
 				}
 			}
 		});
@@ -169,10 +170,10 @@ public class ControlFrame extends JFrame {
 			}
 		});
 
-		currentLabel = new JLabel("00:00");
+		currentLabel = new JLabel(PlayerCache.PROGRESS);
 		progressTimepanel.add(currentLabel, BorderLayout.WEST);
 
-		totalLabel = new JLabel("00:00");
+		totalLabel = new JLabel(PlayerCache.PROGRESS);
 		progressTimepanel.add(totalLabel, BorderLayout.EAST);
 		volumControlerSlider.addChangeListener(new ChangeListener() {
 

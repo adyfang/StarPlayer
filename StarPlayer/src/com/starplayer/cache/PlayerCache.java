@@ -33,14 +33,57 @@ public class PlayerCache
         }
     };
 
+    /** Title */
+    public static String PLAYER_TITLE = "RATE TURNTABLE TEST SIMULATION PROGRAM";
+    
+    /** File */
+    public static String MENU_FILE = "File";
+
+    /** Open File */
+    public static String MENU_FILE_OPEN_FILE = "Open File";
+
+    /** Exit */
+    public static String MENU_FILE_EXIT = "Exit";
+
+    /** Full */
+    public static String BTN_FULL = "Full";
+
+    /** Small */
+    public static String BTN_SMALL = "Small";
+
+    /** Stop */
+    public static String BTN_STOP = "Stop";
+
+    /** 打开播放列表 List>> */
+    public static String BTN_LIST_OPENED = "List>>";
+
+    /** 关闭播放列表 <<List */
+    public static String BTN_LIST_CLOSED = "<<List";
+
+    /** Clear */
+    public static String BTN_LIST_CLEAR = "Clear";
+
+    /** Search */
+    public static String BTN_LIST_SEARCH = "Search";
+
+    /** PROGRESS */
+    public static String PROGRESS = "00:00";
+
+    /** 清除播放列表提示 */
+    public static String DIRLOG_CLEAR_PLAYLIST = "Are you sure to clear the playlist?";
+
     private static String OUTPUT_PATH = "output.tmp";
 
     private Map<String, String> viewMap = new HashMap<String, String>();
+
     private Map<String, String> searchMap = new HashMap<String, String>();
-    
+
     /** 最近一次打开文件的目录 */
     private String lastPath = null;
     
+    /** 最近一次打开的文件 */
+    private String lastFile = null;
+
     /**
      * 写入缓存文件
      * 
@@ -114,7 +157,7 @@ public class PlayerCache
     public void setViewMap(Map<String, String> viewMap)
     {
         this.viewMap = new TreeMap<String, String>(new Comparator<String>()
-                {
+        {
             @Override
             public int compare(String o1, String o2)
             {
@@ -123,7 +166,7 @@ public class PlayerCache
         });
         this.viewMap.putAll(viewMap);
     }
-    
+
     public Map<String, String> getSearchMap()
     {
         return searchMap;
@@ -132,7 +175,7 @@ public class PlayerCache
     public void setSearchMap(Map<String, String> searchMap)
     {
         this.searchMap = new TreeMap<String, String>(new Comparator<String>()
-                {
+        {
             @Override
             public int compare(String o1, String o2)
             {
@@ -150,5 +193,15 @@ public class PlayerCache
     public void setLastPath(String lastPath)
     {
         this.lastPath = lastPath;
+    }
+
+    public String getLastFile()
+    {
+        return lastFile;
+    }
+
+    public void setLastFile(String lastFile)
+    {
+        this.lastFile = lastFile;
     }
 }

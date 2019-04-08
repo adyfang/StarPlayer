@@ -2,6 +2,7 @@ package com.starplayer.views;
 
 import java.awt.BorderLayout;
 import java.awt.Canvas;
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -30,6 +31,7 @@ import javax.swing.event.ChangeListener;
 import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer;
 
+import com.starplayer.cache.PlayerCache;
 import com.starplayer.main.PlayerMain;
 import com.starplayer.playlist.PlayListFrame;
 
@@ -58,7 +60,6 @@ public class DisplayFrame extends JFrame
 
     private JMenuItem mntmOpenVideo;
 
-    // private JMenuItem mntmOpenSubtitle;
     private JMenuItem mntmExit;
 
     private JButton forwardButton;
@@ -90,6 +91,7 @@ public class DisplayFrame extends JFrame
     {
         playListFrame = new PlayListFrame();
         setIconImage(new ImageIcon("picture/icon.png").getImage());
+        setTitle(PlayerCache.PLAYER_TITLE);
         addComponentListener(new ComponentAdapter()
         {
             @Override
@@ -133,11 +135,11 @@ public class DisplayFrame extends JFrame
         mnFile = new JMenu("File");
         menuBar.add(mnFile);
 
-        mntmOpenVideo = new JMenuItem("Open File");
+        mntmOpenVideo = new JMenuItem(PlayerCache.MENU_FILE_OPEN_FILE);
         mntmOpenVideo.setSelected(true);
         mnFile.add(mntmOpenVideo);
 
-        mntmExit = new JMenuItem("Exit");
+        mntmExit = new JMenuItem(PlayerCache.MENU_FILE_EXIT);
         mnFile.add(mntmExit);
 
         mntmOpenVideo.addActionListener(new ActionListener()
@@ -145,9 +147,13 @@ public class DisplayFrame extends JFrame
             @Override
             public void actionPerformed(ActionEvent e)
             {
-                PlayerMain.openVedio();
+                PlayerMain.openVideo();
                 playListFrame.setList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
                 playListFrame.getScrollPane().setViewportView(playListFrame.getList());
+
+                playListFrame.getList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
+                // 选中文件在播放列表中的背景色
+                playListFrame.getList().setSelectionBackground(Color.GRAY);
             }
         });
 
@@ -182,8 +188,9 @@ public class DisplayFrame extends JFrame
         videoSurface.addMouseListener(new MouseAdapter()
         {
             String btnText = ">";
+
             @SuppressWarnings("unused")
-            String btnText1 = "Full";
+            String btnText1 = PlayerCache.BTN_FULL;
 
             Timer mouseTime;
 
@@ -319,7 +326,7 @@ public class DisplayFrame extends JFrame
             }
         });
 
-        stopButton = new JButton("Stop");
+        stopButton = new JButton(PlayerCache.BTN_STOP);
 
         stopButton.addMouseListener(new MouseAdapter()
         {
@@ -333,11 +340,12 @@ public class DisplayFrame extends JFrame
         controlPanel.add(stopButton);
         controlPanel.add(forwardButton);
 
-        FullScreenButton = new JButton("Full");
+        FullScreenButton = new JButton(PlayerCache.BTN_FULL);
         FullScreenButton.addMouseListener(new MouseAdapter()
         {
             @SuppressWarnings("unused")
-            String btnText = "Full";
+            String btnText = PlayerCache.BTN_FULL;
+
             @SuppressWarnings("unused")
             int flag = 0;
 
@@ -358,11 +366,11 @@ public class DisplayFrame extends JFrame
         listButton = new JButton();
         if (playListFrame.getFlag() == 1)
         {
-            listButton.setText("List>>");
+            listButton.setText(PlayerCache.BTN_LIST_OPENED);
         }
         else if (playListFrame.getFlag() == 0)
         {
-            listButton.setText("<<List");
+            listButton.setText(PlayerCache.BTN_LIST_CLOSED);
         }
         listButton.addMouseListener(new MouseAdapter()
         {
@@ -370,22 +378,26 @@ public class DisplayFrame extends JFrame
             public void mouseClicked(MouseEvent e)
             {
 
-                if (listButton.getText() == "List>>")
+                if (PlayerCache.BTN_LIST_OPENED.equals(listButton.getText()))
                 {
                     playListFrame.setVisible(true);
                     if (Math.abs(PlayerMain.getFrame().getWidth() - Toolkit.getDefaultToolkit().getScreenSize().width) <= 20)
+                    {
                         playListFrame.setBounds(Toolkit.getDefaultToolkit().getScreenSize().width - 400, 0, 400,
                                 PlayerMain.getFrame().getHeight());
+                    }
                     else
+                    {
                         playListFrame.setBounds(PlayerMain.getFrame().getX() + PlayerMain.getFrame().getWidth() - 15,
                                 PlayerMain.getFrame().getY(), 400, PlayerMain.getFrame().getHeight());
+                    }
                     playListFrame.setFlag(0);
-                    listButton.setText("<<List");
+                    listButton.setText(PlayerCache.BTN_LIST_CLOSED);
                 }
-                else if (listButton.getText() == "<<List")
+                else if (PlayerCache.BTN_LIST_CLOSED.equals(listButton.getText()))
                 {
                     playListFrame.setVisible(false);
-                    listButton.setText("List>>");
+                    listButton.setText(PlayerCache.BTN_LIST_OPENED);
                 }
 
             }

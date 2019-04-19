@@ -264,6 +264,7 @@ public class DisplayFrame extends JFrame
         };
         playerComponent.setName("player");
         homePanel.setName("home");
+        homePanel.setBackground(Color.white);
         videoPanel.add(homePanel, BorderLayout.CENTER);
         panel = new JPanel();
         videoPanel.add(panel, BorderLayout.SOUTH);

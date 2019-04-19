@@ -3,7 +3,9 @@ package com.starplayer.views;
 import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,6 +19,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -40,9 +43,13 @@ public class DisplayFrame extends JFrame
 {
     private JPanel contentPane;
 
+    private JLayeredPane videoPanel;
+
     EmbeddedMediaPlayerComponent playerComponent;
 
     private JPanel panel;
+
+    private JPanel homePanel;
 
     private JButton stopButton;
 
@@ -66,7 +73,7 @@ public class DisplayFrame extends JFrame
 
     private JButton backwordButton;
 
-    private JButton FullScreenButton;
+    private JButton fullScreenButton;
 
     private int flag = 0;
 
@@ -90,7 +97,7 @@ public class DisplayFrame extends JFrame
     public DisplayFrame()
     {
         playListFrame = new PlayListFrame();
-        setIconImage(new ImageIcon("picture/icon.png").getImage());
+        setIconImage(PlayerCache.getLogo());
         setTitle(PlayerCache.PLAYER_TITLE);
         addComponentListener(new ComponentAdapter()
         {
@@ -126,13 +133,13 @@ public class DisplayFrame extends JFrame
             }
         });
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 653, 394);
+        setBounds(100, 100, 650, 500);
         kble = new KeyboardListenerEvent();
         kble.keyBordListner();
         menuBar = new JMenuBar();
         setJMenuBar(menuBar);
 
-        mnFile = new JMenu("File");
+        mnFile = new JMenu(PlayerCache.MENU_FILE);
         menuBar.add(mnFile);
 
         mntmOpenVideo = new JMenuItem(PlayerCache.MENU_FILE_OPEN_FILE);
@@ -147,13 +154,16 @@ public class DisplayFrame extends JFrame
             @Override
             public void actionPerformed(ActionEvent e)
             {
+                showPlayer(true);
                 PlayerMain.openVideo();
-                playListFrame.setList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
-                playListFrame.getScrollPane().setViewportView(playListFrame.getList());
+                playListFrame.setPlayerList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
+                playListFrame.getScrollPane().setViewportView(playListFrame.getPlayerList());
 
-                playListFrame.getList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
+                playListFrame.getPlayerList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
                 // 选中文件在播放列表中的背景色
-                playListFrame.getList().setSelectionBackground(Color.GRAY);
+                playListFrame.getPlayerList().setSelectionBackground(Color.GRAY);
+                
+                playListFrame.displayAttr();
             }
         });
 
@@ -179,7 +189,7 @@ public class DisplayFrame extends JFrame
         contentPane.setLayout(new BorderLayout(0, 0));
         setContentPane(contentPane);
 
-        JPanel videoPanel = new JPanel();
+        videoPanel = new JLayeredPane();
         contentPane.add(videoPanel, BorderLayout.CENTER);
         videoPanel.setLayout(new BorderLayout(0, 0));
 
@@ -241,7 +251,20 @@ public class DisplayFrame extends JFrame
             }
 
         });
-        videoPanel.add(playerComponent, BorderLayout.CENTER);
+
+        homePanel = new JPanel()
+        {
+            @Override
+            public void paint(Graphics g)
+            {
+                super.paint(g);
+                ImageIcon home = new ImageIcon(PlayerCache.getHome());
+                g.drawImage(home.getImage(), 95, 0, this.getWidth() - 190, this.getHeight(), this);
+            }
+        };
+        playerComponent.setName("player");
+        homePanel.setName("home");
+        videoPanel.add(homePanel, BorderLayout.CENTER);
         panel = new JPanel();
         videoPanel.add(panel, BorderLayout.SOUTH);
         panel.setLayout(new BorderLayout(0, 0));
@@ -340,8 +363,8 @@ public class DisplayFrame extends JFrame
         controlPanel.add(stopButton);
         controlPanel.add(forwardButton);
 
-        FullScreenButton = new JButton(PlayerCache.BTN_FULL);
-        FullScreenButton.addMouseListener(new MouseAdapter()
+        fullScreenButton = new JButton(PlayerCache.BTN_FULL);
+        fullScreenButton.addMouseListener(new MouseAdapter()
         {
             @SuppressWarnings("unused")
             String btnText = PlayerCache.BTN_FULL;
@@ -356,7 +379,7 @@ public class DisplayFrame extends JFrame
                 PlayerMain.fullScreen();
             }
         });
-        controlPanel.add(FullScreenButton);
+        controlPanel.add(fullScreenButton);
 
         controlPanel.add(volumControlerSlider);
 
@@ -426,6 +449,37 @@ public class DisplayFrame extends JFrame
 
         totalLabel = new JLabel("02：13");
         progressTimePanel.add(totalLabel, BorderLayout.EAST);
+    }
+    
+    public void showPlayer(boolean isShowPlayer)
+    {
+        boolean isHaveHome = false;
+        for (Component cp : videoPanel.getComponents())
+        {
+            if ("home".equals(cp.getName()))
+            {
+                isHaveHome = true;
+                break;
+            }
+        }
+        if (isShowPlayer)
+        {
+            if (isHaveHome)
+            {
+                videoPanel.remove(homePanel);
+                playerComponent.setVisible(true);
+                videoPanel.add(playerComponent);
+            }
+        }
+        else
+        {
+            if (!isHaveHome)
+            {
+                videoPanel.add(homePanel);
+                playerComponent.setVisible(false);
+                videoPanel.remove(playerComponent);
+            }
+        }
     }
 
     // Get the video
@@ -499,4 +553,13 @@ public class DisplayFrame extends JFrame
         return playListFrame;
     }
 
+    public JLayeredPane getVideoPanel()
+    {
+        return videoPanel;
+    }
+
+    public JPanel getHomePanel()
+    {
+        return homePanel;
+    }
 }

@@ -14,19 +14,26 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 import com.starplayer.cache.PlayerCache;
@@ -41,11 +48,15 @@ public class PlayListFrame extends JFrame
     private int flag = 0;
 
     @SuppressWarnings("rawtypes")
-    private JList list = new JList();
+    private JList playerList = new JList();
 
     private JScrollPane scrollPane;
 
-    private JPanel panel;
+    private JScrollPane attrPane;
+
+    private JLabel attrText;
+
+    private JPanel searchPanel;
 
     private JButton historyClearButton;
 
@@ -86,32 +97,41 @@ public class PlayListFrame extends JFrame
         {
             PlayerMain.getPlayerCache().setViewMap(historyMap);
             PlayerMain.getPlayerCache().setSearchMap(historyMap);
-            setList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
+            setPlayerList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
         }
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         contentPane.setLayout(new BorderLayout(0, 0));
         setContentPane(contentPane);
 
-        scrollPane = new JScrollPane();
+        scrollPane = new JScrollPane()
+        {
+            @Override
+            public Dimension getPreferredSize()
+            {
+                return new Dimension(contentPane.getWidth(), 200);
+            }
+        };
         scrollPane.setEnabled(false);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-        list.addMouseListener(new MouseAdapter()
+        playerList.setPreferredSize(new Dimension(scrollPane.getWidth(), 200));
+        playerList.addMouseListener(new MouseAdapter()
         {
             @Override
             public void mouseClicked(MouseEvent e)
             {
                 if (e.getClickCount() == 2)
                 {
-                    String name = (String) list.getSelectedValue();
-                    list.setSelectedValue(name, true);
+                    String name = (String) playerList.getSelectedValue();
+                    playerList.setSelectedValue(name, true);
                     // 选中文件在播放列表中的背景色
-                    list.setSelectionBackground(Color.GRAY);
+                    playerList.setSelectionBackground(Color.GRAY);
                     // 选中文件在播放列表中的字体颜色
                     // list.setSelectionForeground(Color.BLACK);
 
                     PlayerMain.openVideoFromList(name);
+                    displayAttr();
                     // setList(new
                     // ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
                     // getScrollPane().setViewportView(getList());
@@ -119,14 +139,30 @@ public class PlayListFrame extends JFrame
             }
         });
         contentPane.add(scrollPane, BorderLayout.CENTER);
-        scrollPane.setViewportView(getList());
+        scrollPane.setViewportView(playerList);
 
-        panel = new JPanel();
-        contentPane.add(panel, BorderLayout.NORTH);
-        panel.setLayout(new BorderLayout(0, 0));
+        attrText = new JLabel();
+        attrText.setAutoscrolls(true);
+        attrText.setSize(contentPane.getWidth(), 200);
+        attrPane = new JScrollPane(attrText)
+        {
+            @Override
+            public Dimension getPreferredSize()
+            {
+                return new Dimension(contentPane.getWidth(), 200);
+            }
+        };
+        attrPane.setEnabled(false);
+        attrPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        attrPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+        contentPane.add(attrPane, BorderLayout.SOUTH);
+
+        searchPanel = new JPanel();
+        contentPane.add(searchPanel, BorderLayout.NORTH);
+        searchPanel.setLayout(new BorderLayout(0, 0));
 
         historyPanel = new JPanel();
-        panel.add(historyPanel, BorderLayout.CENTER);
+        searchPanel.add(historyPanel, BorderLayout.CENTER);
         historyPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
         searchField = new JTextField();
@@ -147,13 +183,13 @@ public class PlayListFrame extends JFrame
                 {
                     searchField.setText("");
                 }
-                
-                setList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
-                getScrollPane().setViewportView(getList());
 
-                getList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
+                setPlayerList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
+                getScrollPane().setViewportView(getPlayerList());
+
+                getPlayerList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
                 // 选中文件在播放列表中的背景色
-                getList().setSelectionBackground(Color.GRAY);
+                getPlayerList().setSelectionBackground(Color.GRAY);
             }
 
             @Override
@@ -168,7 +204,7 @@ public class PlayListFrame extends JFrame
                 }
             }
         });
-        
+
         searchField.addKeyListener(new KeyAdapter()
         {
             public void keyReleased(KeyEvent e)
@@ -197,12 +233,14 @@ public class PlayListFrame extends JFrame
             public void mouseClicked(MouseEvent e)
             {
                 PlayerMain.openVideo();
-                setList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
-                getScrollPane().setViewportView(getList());
+                setPlayerList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
+                getScrollPane().setViewportView(getPlayerList());
 
-                getList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
+                getPlayerList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
                 // 选中文件在播放列表中的背景色
-                getList().setSelectionBackground(Color.GRAY);
+                getPlayerList().setSelectionBackground(Color.GRAY);
+                
+                displayAttr();
             }
         });
 
@@ -255,8 +293,10 @@ public class PlayListFrame extends JFrame
                             PlayerMain.getPlayerCache().clearHistory();
                             PlayerMain.getPlayerCache().getViewMap().clear();
                             dlm.clear();
-                            list.setModel(dlm);
-                            scrollPane.setViewportView(getList());
+                            playerList.setModel(dlm);
+                            scrollPane.setViewportView(getPlayerList());
+                            PlayerMain.getPlayerCache().setLastFile(null);
+                            displayAttr();
                         } catch (IOException e1)
                         {
                             e1.printStackTrace();
@@ -289,12 +329,70 @@ public class PlayListFrame extends JFrame
             PlayerMain.getPlayerCache().setViewMap(PlayerMain.getPlayerCache().getSearchMap());
         }
 
-        setList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
-        getScrollPane().setViewportView(getList());
-        
-        getList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
+        setPlayerList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
+        getScrollPane().setViewportView(getPlayerList());
+
+        getPlayerList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
         // 选中文件在播放列表中的背景色
-        getList().setSelectionBackground(Color.GRAY);
+        getPlayerList().setSelectionBackground(Color.GRAY);
+    }
+
+    public void displayAttr()
+    {
+        if (PlayerMain.getPlayerCache().getLastFile() != null)
+        {
+            try
+            {
+                File mvFile = new File(PlayerMain.getPlayerCache().getLastFile());
+                String fileName = mvFile.getName();
+                if (fileName.lastIndexOf(".") != -1)
+                {
+                    fileName = fileName.substring(0, fileName.lastIndexOf(".")) + ".txt";
+                }
+                File attrFile = new File(mvFile.getParent() + File.separator + fileName);
+                if (attrFile.exists())
+                {
+                    List<String> lineList = Files.readAllLines(Paths.get(attrFile.getAbsolutePath()),
+                            Charset.forName("GBK"));
+                    String content = "";
+                    int i = 0;
+                    int total = lineList.size();
+                    for (String line : lineList)
+                    {
+                        content += line;
+                        if (i++ < total - 1)
+                        {
+                            content += "<br/>";
+                        }
+                    }
+                    if (content.length() == 0)
+                    {
+                        attrText.setText("<html>Nothing</html>");
+                        attrText.setHorizontalAlignment(SwingConstants.CENTER);
+                        attrText.setVerticalAlignment(SwingConstants.CENTER);
+                    }
+                    else
+                    {
+                        attrText.setText("<html>" + content + "</html>");
+                        attrText.setHorizontalAlignment(SwingConstants.LEFT);
+                        attrText.setVerticalAlignment(SwingConstants.TOP);
+                    }
+                }
+                else
+                {
+                    attrText.setText("<html>" + fileName + " is not exits.</html>");
+                    attrText.setHorizontalAlignment(SwingConstants.CENTER);
+                    attrText.setVerticalAlignment(SwingConstants.CENTER);
+                }
+            } catch (Exception e1)
+            {
+                e1.printStackTrace();
+            }
+        }
+        else
+        {
+            attrText.setText("<html>Nothing</html>");
+        }
     }
 
     public int getFlag()
@@ -308,14 +406,14 @@ public class PlayListFrame extends JFrame
     }
 
     @SuppressWarnings("rawtypes")
-    public JList getList()
+    public JList getPlayerList()
     {
-        return list;
+        return playerList;
     }
 
     @SuppressWarnings(
     { "unchecked", "rawtypes" })
-    public void setList(ArrayList<String> arrayList)
+    public void setPlayerList(ArrayList<String> arrayList)
     {
         dlm = new DefaultListModel();
         for (int i = arrayList.size() - 1; i >= 0; i--)
@@ -323,7 +421,7 @@ public class PlayListFrame extends JFrame
             dlm.addElement(arrayList.get(i));
         }
 
-        list.setModel(dlm);
+        playerList.setModel(dlm);
     }
 
     public JScrollPane getScrollPane()
@@ -341,4 +439,8 @@ public class PlayListFrame extends JFrame
         this.searchField = searchField;
     }
 
+    public JLabel getAttrText()
+    {
+        return attrText;
+    }
 }

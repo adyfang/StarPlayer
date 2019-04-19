@@ -1,11 +1,14 @@
 package com.starplayer.cache;
 
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
+import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -33,9 +36,20 @@ public class PlayerCache
         }
     };
 
+    // public static String NEW_LINE = System.getProperty("line.separator");
+
+    /** Logo logo.png */
+    public static String PLAYER_LOGO = "/picture/logo.jpg";
+
+    /** 首页 home.jpg */
+    public static String PLAYER_HOME = "/picture/home.jpg";
+
+    /** 首页 welcome.jpg */
+    public static String PLAYER_WELCOME = "/picture/welcome.jpg";
+
     /** Title */
     public static String PLAYER_TITLE = "RATE TURNTABLE TEST SIMULATION PROGRAM";
-    
+
     /** File */
     public static String MENU_FILE = "File";
 
@@ -72,7 +86,7 @@ public class PlayerCache
     /** 清除播放列表提示 */
     public static String DIRLOG_CLEAR_PLAYLIST = "Are you sure to clear the playlist?";
 
-    private static String OUTPUT_PATH = "output.tmp";
+    private static String OUTPUT_PATH = "cache.tmp";
 
     private Map<String, String> viewMap = new HashMap<String, String>();
 
@@ -80,7 +94,7 @@ public class PlayerCache
 
     /** 最近一次打开文件的目录 */
     private String lastPath = null;
-    
+
     /** 最近一次打开的文件 */
     private String lastFile = null;
 
@@ -147,6 +161,22 @@ public class PlayerCache
         RandomAccessFile rf = new RandomAccessFile(OUTPUT_PATH, "rw");
         FileChannel fc = rf.getChannel();
         fc.truncate(1);
+    }
+
+    public static Image getLogo()
+    {
+        Image logo = Toolkit.getDefaultToolkit().getImage(PlayerCache.class.getClass().getResource(PLAYER_LOGO));
+        return logo;
+    }
+
+    public static URL getHome()
+    {
+        return PlayerCache.class.getClass().getResource(PLAYER_HOME);
+    }
+
+    public static URL getWelcome()
+    {
+        return PlayerCache.class.getClass().getResource(PLAYER_WELCOME);
     }
 
     public Map<String, String> getViewMap()

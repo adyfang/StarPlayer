@@ -1,6 +1,7 @@
 package com.starplayer.main;
 
 import java.awt.EventQueue;
+import java.awt.SplashScreen;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.io.File;
@@ -16,6 +17,7 @@ import uk.co.caprica.vlcj.player.embedded.DefaultAdaptiveRuntimeFullScreenStrate
 import uk.co.caprica.vlcj.runtime.RuntimeUtil;
 
 import com.starplayer.cache.PlayerCache;
+import com.starplayer.cache.VideoFileFilter;
 import com.starplayer.views.ControlFrame;
 import com.starplayer.views.DisplayFrame;
 import com.starplayer.views.VideoDuration;
@@ -40,9 +42,29 @@ public class PlayerMain
 
     private static PlayerCache playerCache = new PlayerCache();
 
+    /**
+     * 打包后jar包中META-INF\MANIFEST.MF文件替换为工程中META-INF\MANIFEST.MF，增加启动闪屏
+     * 
+     * @param args
+     * @throws IOException
+     */
     @SuppressWarnings("static-access")
     public static void main(String[] args) throws IOException
     {
+        new Thread()
+        {
+            public void run()
+            {
+                homeSplash();
+            }
+        }.start();
+        try
+        {
+            Thread.sleep(2000);
+        } catch (Exception e)
+        {
+        }
+
         playerCache.setViewMap(playerCache.readHistory());
         playerCache.setSearchMap(playerCache.getViewMap());
         String arch = System.getProperty("sun.arch.data.model");
@@ -68,7 +90,7 @@ public class PlayerMain
 
                     videoDuration = new VideoDuration();
                     String[] optionDecode =
-                    { "--subsdec-encoding=GB18030" };
+                    { "--subsdec-encoding=GB18030", "--loop", "--repeat", "--video-title=" + PlayerCache.PLAYER_TITLE };
                     // Publish progress of movie and get the total time and
                     // current time
                     new SwingWorker<String, Integer>()
@@ -114,6 +136,21 @@ public class PlayerMain
         });
     }
 
+    public static void homeSplash()
+    {
+        try
+        {
+            SplashScreen splash = SplashScreen.getSplashScreen();
+            System.out.println(PlayerCache.getWelcome());
+            splash.setImageURL(PlayerCache.getWelcome());
+            splash.update();
+            Thread.sleep(2000);
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
     // Play the opened movie
     public static void play()
     {
@@ -134,6 +171,7 @@ public class PlayerMain
     {
         frame.getMediaPlayer().stop();
         frame.getPlayButton().setText(">");
+        frame.showPlayer(false);
     }
 
     // Forward
@@ -167,6 +205,7 @@ public class PlayerMain
     public static void openVideo()
     {
         JFileChooser chooser = new JFileChooser();
+        chooser.setFileFilter(new VideoFileFilter());
         if (null != playerCache.getLastPath())
         {
             chooser.setCurrentDirectory(new File(playerCache.getLastPath()));
@@ -211,6 +250,7 @@ public class PlayerMain
                 e.printStackTrace();
             }
 
+            frame.showPlayer(true);
             frame.getMediaPlayer().playMedia(file.getAbsolutePath());
             frame.getPlayButton().setText("||");
         }
@@ -224,20 +264,9 @@ public class PlayerMain
         playerCache.setLastFile(path);
         playerCache.getViewMap().put(path, path);
         playerCache.writeHistory(playerCache.getViewMap());
+        frame.showPlayer(true);
         frame.getMediaPlayer().playMedia(path);
         frame.getPlayButton().setText("||");
-    }
-
-    // Open subtitle of movie
-    public static void openSubtitle()
-    {
-        JFileChooser chooser = new JFileChooser();
-        int v = chooser.showOpenDialog(null);
-        if (v == JFileChooser.APPROVE_OPTION)
-        {
-            File file = chooser.getSelectedFile();
-            frame.getMediaPlayer().setSubTitleFile(file);
-        }
     }
 
     // Exit to program
@@ -331,7 +360,6 @@ public class PlayerMain
 
     public void setLogo()
     {
-        // MyLogo logo = new MyLogo();
         Logo logo = Logo.logo().file("picture/logo.png").position(libvlc_logo_position_e.top_left).opacity(0.2f)
                 .enable();
         frame.getMediaPlayer().setLogo(logo);

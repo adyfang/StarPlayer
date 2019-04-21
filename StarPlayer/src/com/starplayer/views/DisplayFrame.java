@@ -121,8 +121,8 @@ public class DisplayFrame extends JFrame
                     playListFrame.setVisible(true);
                     if (Math.abs(PlayerMain.getFrame().getWidth() - Toolkit.getDefaultToolkit().getScreenSize().width) <= 20)
                     {
-                        playListFrame.setBounds((int) (Toolkit.getDefaultToolkit().getScreenSize().getWidth() - 400),
-                                0, 400, PlayerMain.getFrame().getHeight());
+                        playListFrame.setBounds((int) (Toolkit.getDefaultToolkit().getScreenSize().getWidth() - 390),
+                                0, 400, PlayerMain.getFrame().getHeight() - 10);
                         playListFrame.setAlwaysOnTop(true);
                     }
                     else
@@ -156,10 +156,10 @@ public class DisplayFrame extends JFrame
             {
                 showPlayer(true);
                 PlayerMain.openVideo();
-                playListFrame.setPlayerList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
+                playListFrame.setPlayerList(new ArrayList<String>(PlayerCache.viewMap.values()));
                 playListFrame.getScrollPane().setViewportView(playListFrame.getPlayerList());
 
-                playListFrame.getPlayerList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
+                playListFrame.getPlayerList().setSelectedValue(PlayerCache.lastFile, true);
                 // 选中文件在播放列表中的背景色
                 playListFrame.getPlayerList().setSelectionBackground(Color.GRAY);
                 
@@ -258,7 +258,7 @@ public class DisplayFrame extends JFrame
             public void paint(Graphics g)
             {
                 super.paint(g);
-                ImageIcon home = new ImageIcon(PlayerCache.getHome());
+                ImageIcon home = new ImageIcon(PlayerCache.getImage(PlayerCache.PLAYER_HOME));
                 g.drawImage(home.getImage(), 95, 0, this.getWidth() - 190, this.getHeight(), this);
             }
         };

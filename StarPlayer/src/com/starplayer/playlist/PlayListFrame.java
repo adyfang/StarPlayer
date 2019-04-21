@@ -56,8 +56,6 @@ public class PlayListFrame extends JFrame
 
     private JLabel attrText;
 
-    private JPanel searchPanel;
-
     private JButton historyClearButton;
 
     @SuppressWarnings("rawtypes")
@@ -92,12 +90,12 @@ public class PlayListFrame extends JFrame
         setMaximizedBounds(new Rectangle((int) Toolkit.getDefaultToolkit().getScreenSize().getWidth() - 400, 0, 400,
                 (int) Toolkit.getDefaultToolkit().getScreenSize().getHeight()));
         // setBounds(100, 100, 229, 394);
-        Map<String, String> historyMap = PlayerMain.getPlayerCache().readHistory();
+        Map<String, String> historyMap = PlayerCache.readHistory();
         if (!historyMap.isEmpty())
         {
-            PlayerMain.getPlayerCache().setViewMap(historyMap);
-            PlayerMain.getPlayerCache().setSearchMap(historyMap);
-            setPlayerList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
+            PlayerCache.setViewMap(historyMap);
+            PlayerCache.setSearchMap(historyMap);
+            setPlayerList(new ArrayList<String>(PlayerCache.viewMap.values()));
         }
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -109,13 +107,13 @@ public class PlayListFrame extends JFrame
             @Override
             public Dimension getPreferredSize()
             {
-                return new Dimension(contentPane.getWidth(), 200);
+                return new Dimension(contentPane.getWidth(), contentPane.getHeight() - 200 - 25);
             }
         };
         scrollPane.setEnabled(false);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-        playerList.setPreferredSize(new Dimension(scrollPane.getWidth(), 200));
+//        playerList.setPreferredSize(new Dimension(scrollPane.getWidth(), scrollPane.getHeight()));
         playerList.addMouseListener(new MouseAdapter()
         {
             @Override
@@ -133,7 +131,7 @@ public class PlayListFrame extends JFrame
                     PlayerMain.openVideoFromList(name);
                     displayAttr();
                     // setList(new
-                    // ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
+                    // ArrayList<String>(PlayerCache.viewMap.values()));
                     // getScrollPane().setViewportView(getList());
                 }
             }
@@ -144,6 +142,8 @@ public class PlayListFrame extends JFrame
         attrText = new JLabel();
         attrText.setAutoscrolls(true);
         attrText.setSize(contentPane.getWidth(), 200);
+        attrText.setHorizontalAlignment(SwingConstants.CENTER);
+        attrText.setVerticalAlignment(SwingConstants.CENTER);
         attrPane = new JScrollPane(attrText)
         {
             @Override
@@ -157,12 +157,8 @@ public class PlayListFrame extends JFrame
         attrPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
         contentPane.add(attrPane, BorderLayout.SOUTH);
 
-        searchPanel = new JPanel();
-        contentPane.add(searchPanel, BorderLayout.NORTH);
-        searchPanel.setLayout(new BorderLayout(0, 0));
-
         historyPanel = new JPanel();
-        searchPanel.add(historyPanel, BorderLayout.CENTER);
+        contentPane.add(historyPanel, BorderLayout.NORTH);
         historyPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 
         searchField = new JTextField();
@@ -184,10 +180,10 @@ public class PlayListFrame extends JFrame
                     searchField.setText("");
                 }
 
-                setPlayerList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
+                setPlayerList(new ArrayList<String>(PlayerCache.viewMap.values()));
                 getScrollPane().setViewportView(getPlayerList());
 
-                getPlayerList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
+                getPlayerList().setSelectedValue(PlayerCache.lastFile, true);
                 // 选中文件在播放列表中的背景色
                 getPlayerList().setSelectionBackground(Color.GRAY);
             }
@@ -233,13 +229,13 @@ public class PlayListFrame extends JFrame
             public void mouseClicked(MouseEvent e)
             {
                 PlayerMain.openVideo();
-                setPlayerList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
+                setPlayerList(new ArrayList<String>(PlayerCache.viewMap.values()));
                 getScrollPane().setViewportView(getPlayerList());
 
-                getPlayerList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
+                getPlayerList().setSelectedValue(PlayerCache.lastFile, true);
                 // 选中文件在播放列表中的背景色
                 getPlayerList().setSelectionBackground(Color.GRAY);
-                
+
                 displayAttr();
             }
         });
@@ -290,12 +286,12 @@ public class PlayListFrame extends JFrame
                         try
                         {
                             dialog.setVisible(false);
-                            PlayerMain.getPlayerCache().clearHistory();
-                            PlayerMain.getPlayerCache().getViewMap().clear();
+                            PlayerCache.clearHistory();
+                            PlayerCache.viewMap.clear();
                             dlm.clear();
                             playerList.setModel(dlm);
                             scrollPane.setViewportView(getPlayerList());
-                            PlayerMain.getPlayerCache().setLastFile(null);
+                            PlayerCache.lastFile = null;
                             displayAttr();
                         } catch (IOException e1)
                         {
@@ -315,35 +311,35 @@ public class PlayListFrame extends JFrame
     {
         if (null != search && search.trim().length() > 0)
         {
-            PlayerMain.getPlayerCache().getViewMap().clear();
-            for (Entry<String, String> entry : PlayerMain.getPlayerCache().getSearchMap().entrySet())
+            PlayerCache.viewMap.clear();
+            for (Entry<String, String> entry : PlayerCache.searchMap.entrySet())
             {
                 if (entry.getValue().contains(search))
                 {
-                    PlayerMain.getPlayerCache().getViewMap().put(entry.getKey(), entry.getValue());
+                    PlayerCache.viewMap.put(entry.getKey(), entry.getValue());
                 }
             }
         }
         else
         {
-            PlayerMain.getPlayerCache().setViewMap(PlayerMain.getPlayerCache().getSearchMap());
+            PlayerCache.setViewMap(PlayerCache.searchMap);
         }
 
-        setPlayerList(new ArrayList<String>(PlayerMain.getPlayerCache().getViewMap().values()));
+        setPlayerList(new ArrayList<String>(PlayerCache.viewMap.values()));
         getScrollPane().setViewportView(getPlayerList());
 
-        getPlayerList().setSelectedValue(PlayerMain.getPlayerCache().getLastFile(), true);
+        getPlayerList().setSelectedValue(PlayerCache.lastFile, true);
         // 选中文件在播放列表中的背景色
         getPlayerList().setSelectionBackground(Color.GRAY);
     }
 
     public void displayAttr()
     {
-        if (PlayerMain.getPlayerCache().getLastFile() != null)
+        if (PlayerCache.lastFile != null)
         {
             try
             {
-                File mvFile = new File(PlayerMain.getPlayerCache().getLastFile());
+                File mvFile = new File(PlayerCache.lastFile);
                 String fileName = mvFile.getName();
                 if (fileName.lastIndexOf(".") != -1)
                 {
@@ -392,6 +388,8 @@ public class PlayListFrame extends JFrame
         else
         {
             attrText.setText("<html>Nothing</html>");
+            attrText.setHorizontalAlignment(SwingConstants.CENTER);
+            attrText.setVerticalAlignment(SwingConstants.CENTER);
         }
     }
 

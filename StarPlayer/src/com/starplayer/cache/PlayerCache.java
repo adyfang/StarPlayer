@@ -86,36 +86,46 @@ public class PlayerCache
     /** 清除播放列表提示 */
     public static String DIRLOG_CLEAR_PLAYLIST = "Are you sure to clear the playlist?";
 
-    private static String OUTPUT_PATH = "cache.tmp";
+    public static Map<String, String> viewMap = new TreeMap<String, String>(new Comparator<String>()
+            {
+        @Override
+        public int compare(String o1, String o2)
+        {
+            return o1.compareTo(o2) * -1;
+        }
+    });
 
-    private Map<String, String> viewMap = new HashMap<String, String>();
-
-    private Map<String, String> searchMap = new HashMap<String, String>();
+    public static Map<String, String> searchMap = new TreeMap<String, String>(new Comparator<String>()
+            {
+        @Override
+        public int compare(String o1, String o2)
+        {
+            return o1.compareTo(o2) * -1;
+        }
+    });
 
     /** 最近一次打开文件的目录 */
-    private String lastPath = null;
+    public static String lastPath = null;
 
     /** 最近一次打开的文件 */
-    private String lastFile = null;
+    public static String lastFile = null;
+    
+    private static String OUTPUT_PATH = "cache.tmp";
 
     /**
      * 写入缓存文件
      * 
-     * @param map
      */
-    public static void writeHistory(Map<String, String> map)
+    public static void writeHistory()
     {
         try
         {
             Map<String, String> tempMap = new HashMap<String, String>();
-            if (map instanceof TreeMap)
-            {
-                tempMap.putAll(map);
-                FileOutputStream fos = new FileOutputStream(OUTPUT_PATH);
-                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                oos.writeObject(tempMap);
-                oos.close();
-            }
+            tempMap.putAll(PlayerCache.viewMap);
+            FileOutputStream fos = new FileOutputStream(OUTPUT_PATH);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(tempMap);
+            oos.close();
         } catch (Exception e)
         {
             e.printStackTrace();
@@ -169,69 +179,18 @@ public class PlayerCache
         return logo;
     }
 
-    public static URL getHome()
+    public static URL getImage(String relactivePath)
     {
-        return PlayerCache.class.getClass().getResource(PLAYER_HOME);
+        return PlayerCache.class.getClass().getResource(relactivePath);
+    }
+    
+    public static void setViewMap(Map<String, String> viewMap)
+    {
+        PlayerCache.viewMap.putAll(viewMap);
     }
 
-    public static URL getWelcome()
+    public static void setSearchMap(Map<String, String> searchMap)
     {
-        return PlayerCache.class.getClass().getResource(PLAYER_WELCOME);
-    }
-
-    public Map<String, String> getViewMap()
-    {
-        return viewMap;
-    }
-
-    public void setViewMap(Map<String, String> viewMap)
-    {
-        this.viewMap = new TreeMap<String, String>(new Comparator<String>()
-        {
-            @Override
-            public int compare(String o1, String o2)
-            {
-                return o1.compareTo(o2) * -1;
-            }
-        });
-        this.viewMap.putAll(viewMap);
-    }
-
-    public Map<String, String> getSearchMap()
-    {
-        return searchMap;
-    }
-
-    public void setSearchMap(Map<String, String> searchMap)
-    {
-        this.searchMap = new TreeMap<String, String>(new Comparator<String>()
-        {
-            @Override
-            public int compare(String o1, String o2)
-            {
-                return o1.compareTo(o2) * -1;
-            }
-        });
-        this.searchMap.putAll(searchMap);
-    }
-
-    public String getLastPath()
-    {
-        return lastPath;
-    }
-
-    public void setLastPath(String lastPath)
-    {
-        this.lastPath = lastPath;
-    }
-
-    public String getLastFile()
-    {
-        return lastFile;
-    }
-
-    public void setLastFile(String lastFile)
-    {
-        this.lastFile = lastFile;
+        PlayerCache.searchMap.putAll(searchMap);
     }
 }

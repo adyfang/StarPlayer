@@ -40,15 +40,12 @@ public class PlayerMain
 
     private static VideoDuration videoDuration;
 
-    private static PlayerCache playerCache = new PlayerCache();
-
     /**
      * 打包后jar包中META-INF\MANIFEST.MF文件替换为工程中META-INF\MANIFEST.MF，增加启动闪屏
      * 
      * @param args
      * @throws IOException
      */
-    @SuppressWarnings("static-access")
     public static void main(String[] args) throws IOException
     {
         new Thread()
@@ -65,8 +62,8 @@ public class PlayerMain
         {
         }
 
-        playerCache.setViewMap(playerCache.readHistory());
-        playerCache.setSearchMap(playerCache.getViewMap());
+        PlayerCache.setViewMap(PlayerCache.readHistory());
+        PlayerCache.setSearchMap(PlayerCache.viewMap);
         String arch = System.getProperty("sun.arch.data.model");
         if (RuntimeUtil.isWindows())
         {
@@ -141,8 +138,7 @@ public class PlayerMain
         try
         {
             SplashScreen splash = SplashScreen.getSplashScreen();
-            System.out.println(PlayerCache.getWelcome());
-            splash.setImageURL(PlayerCache.getWelcome());
+            splash.setImageURL(PlayerCache.getImage(PlayerCache.PLAYER_WELCOME));
             splash.update();
             Thread.sleep(2000);
         } catch (Exception e)
@@ -201,14 +197,13 @@ public class PlayerMain
     }
 
     // Open view from your computer
-    @SuppressWarnings("static-access")
     public static void openVideo()
     {
         JFileChooser chooser = new JFileChooser();
         chooser.setFileFilter(new VideoFileFilter());
-        if (null != playerCache.getLastPath())
+        if (null != PlayerCache.lastPath && PlayerCache.lastPath.length() > 0)
         {
-            chooser.setCurrentDirectory(new File(playerCache.getLastPath()));
+            chooser.setCurrentDirectory(new File(PlayerCache.lastPath));
         }
         else
         {
@@ -220,12 +215,12 @@ public class PlayerMain
             File file = chooser.getSelectedFile();
             // String name = file.getName();
             String filePath = file.getAbsolutePath();
-            playerCache.setLastFile(filePath);
-            playerCache.getViewMap().put(filePath, filePath);
+            PlayerCache.lastFile = filePath;
+            PlayerCache.viewMap.put(filePath, filePath);
             // Save the list history
             try
             {
-                playerCache.setLastPath(file.getParent());
+                PlayerCache.lastPath = file.getParent();
                 File dir = new File(file.getParent());
                 String suffix = null;
                 String name = null;
@@ -239,12 +234,12 @@ public class PlayerMain
                         if (PlayerCache.FILE_SUFFIX.contains(suffix))
                         {
                             path = f.getAbsolutePath();
-                            playerCache.getViewMap().put(path, path);
+                            PlayerCache.viewMap.put(path, path);
                         }
                     }
                 }
-                playerCache.setSearchMap(playerCache.getViewMap());
-                playerCache.writeHistory(playerCache.getViewMap());
+                PlayerCache.setSearchMap(PlayerCache.viewMap);
+                PlayerCache.writeHistory();
             } catch (Exception e)
             {
                 e.printStackTrace();
@@ -257,13 +252,11 @@ public class PlayerMain
     }
 
     // Open movie from the list view
-    @SuppressWarnings("static-access")
     public static void openVideoFromList(String name)
     {
-        String path = playerCache.getViewMap().get(name);
-        playerCache.setLastFile(path);
-        playerCache.getViewMap().put(path, path);
-        playerCache.writeHistory(playerCache.getViewMap());
+        String path = PlayerCache.viewMap.get(name);
+        PlayerCache.lastFile = path;
+        PlayerCache.writeHistory();
         frame.showPlayer(true);
         frame.getMediaPlayer().playMedia(path);
         frame.getPlayButton().setText("||");
@@ -364,10 +357,4 @@ public class PlayerMain
                 .enable();
         frame.getMediaPlayer().setLogo(logo);
     }
-
-    public static PlayerCache getPlayerCache()
-    {
-        return playerCache;
-    }
-
 }

@@ -48,7 +48,7 @@ public class PlayerCache
     public static String PLAYER_WELCOME = "/picture/welcome.jpg";
 
     /** Title */
-    public static String PLAYER_TITLE = "RATE TURNTABLE TEST SIMULATION PROGRAM";
+    public static String PLAYER_TITLE = "RATE TURNTABLE SIMULATION PROGRAM";
 
     /** File */
     public static String MENU_FILE = "File";
